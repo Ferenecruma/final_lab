@@ -32,6 +32,12 @@ def expr_validation(string, a0, a1):
 
 
 class MainWindow(QMainWindow):
+    default_args = {
+                "G": "Piecewise((0, (t - t_) <= 0),(Max(0,((4 * pi * 1 * (t - t_)) ** (-1/2))* exp(-((x0 - x0_) ** 2) / (4 * 1 * (t - t_))),),True))",
+                "L": "diff(ex_(t,x0,x1), t) - 1 * (diff(diff(ex_(t,x0,x1), x0), x0) + diff(diff(ex_(t,x0,x1), x1), x1))",
+                "y_to_generate_conditions": "10*cos(x0)+10*sin(x1)+t",
+        }
+
     def __init__(self):
         super().__init__()
 
@@ -43,16 +49,24 @@ class MainWindow(QMainWindow):
 
         self.main_layout = QVBoxLayout()
         self.main_layout.addWidget(hint)
-        self.main_layout.addWidget(self.create_line_edit_field("G"))
-        self.main_layout.addWidget(self.create_field("T:"))
-        self.main_layout.addWidget(self.create_field("l_0:"))
-        self.main_layout.addWidget(self.create_field("l_g1:"))
+        self.main_layout.addWidget(self.create_line_edit_field("G:"))
+        self.main_layout.addWidget(self.create_line_edit_field("L:"))
+        self.main_layout.addWidget(self.create_line_edit_field("Func to generate cond:"))
 
+        self.buttons_layout = QHBoxLayout()
         self.button_pass_args = QPushButton()
         self.button_pass_args.setText("Ввести")
         self.button_pass_args.clicked.connect(self.input_button_clicked)
 
-        self.main_layout.addWidget(self.button_pass_args)
+        self.button_set_def_args = QPushButton()
+        self.button_set_def_args.setText("Заповнити")
+        self.button_set_def_args.clicked.connect(self.set_default_values)
+
+        self.buttons_layout.addWidget(self.button_pass_args)
+        self.buttons_layout.addWidget(self.button_set_def_args)
+        buttons_widget = QWidget()
+        buttons_widget.setLayout(self.buttons_layout)
+        self.main_layout.addWidget(buttons_widget)
 
         main_widget = QWidget()
         main_widget.setLayout(self.main_layout)
@@ -98,28 +112,23 @@ class MainWindow(QMainWindow):
         return input_widget
 
     def input_button_clicked(self):
-        if self.is_added:
-            self.delete_from_main_layout() # if widgets already added - remove them
+        values = self.get_data_from_widgets()
+        if not all(val!="" for val in values):
+            self.show_popup("Введіть значення параметрів!")
             self.is_added = False
         else:
-            self.is_added = True
-            values = self.get_data_from_widgets()
+            args = {k:v for k, v in zip(self.default_args.keys(), values)}
+            backend.arg = args
+            backend.main()
 
-            if all(elem == 0 for elem in values):
-                self.show_popup("Введіть значення параметрів!")
-                self.is_added = False
-            else:
-                args = self.set_dict(values)
-                backend.arg = args
-                backend.main()
-
-    def set_dict(self, values):
-        arg = {
-                "y_to_generate_conditions": "10*cos(x0)+10*sin(x1)+t",
-                "G": "Piecewise((0, (t - t_) <= 0),(Max(0,((4 * pi * 1 * (t - t_)) ** (-1/2))* exp(-((x0 - x0_) ** 2) / (4 * 1 * (t - t_))),),True))",
-                "L": "diff(ex_(t,x0,x1), t) - 1 * (diff(diff(ex_(t,x0,x1), x0), x0) + diff(diff(ex_(t,x0,x1), x1), x1))",
-        }
-        return arg
+    def set_default_values(self):
+        items = []
+        for i in range(1, self.main_layout.count() - 1):
+            items.append(self.main_layout.itemAt(i).widget())
+        for widget, value in zip(items, self.default_args.values()):
+            child_widgets = widget.children()
+            if isinstance(child_widgets, list):
+                child_widgets[-1].setText(value)
 
     def get_data_from_widgets(self):
         items, values = [], []
@@ -128,21 +137,8 @@ class MainWindow(QMainWindow):
         for widget in items:
             child_widgets = widget.children()
             if isinstance(child_widgets, list):
-                values.append(int(child_widgets[-1].cleanText()))
+                values.append(child_widgets[-1].text())
         return values
-
-    def delete_from_main_layout(self):
-        """
-        Clearing layout from widgets
-        after updating m and n
-        """
-        items = []
-        for i in range(1, self.main_layout.count() - 1):
-            items.append(self.main_layout.itemAt(i).widget())
-        for widget in items:
-            widgets = widget.children()
-            if isinstance(widgets, list):
-                widgets[-1].setValue(0)
 
     def show_popup(self, info: str):
         msg = QMessageBox()
