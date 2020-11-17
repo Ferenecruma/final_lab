@@ -45,7 +45,12 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Solver")
-        # self.center_on_screen()
+        self.left = 0
+        self.top = 0
+        self.width = 810
+        self.height = 480
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.center_on_screen()
 
         hint = create_hint("Введіть значення параметрів: ")
 
@@ -81,14 +86,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def center_on_screen(self):
-        # geometry of the main window
-        qr = self.frameGeometry()
-        # center point of screen
-        cp = QDesktopWidget().availableGeometry().center()
-        # move rectangle's center point to screen's center point
-        qr.moveCenter(cp)
-        # top left of rectangle becomes top left of window centering it
-        self.move(qr.topLeft())
+        qtRectangle = self.frameGeometry()
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
+        qtRectangle = self.frameGeometry()
 
     def create_field(self, field_title: str, values_num: int=1):
         hint = create_hint(field_title)
