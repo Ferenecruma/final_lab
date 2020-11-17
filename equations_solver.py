@@ -3,15 +3,26 @@ import sys
 from sympy.utilities.lambdify import lambdify
 from sympy.parsing.sympy_parser import parse_expr
 
-from PyQt5.QtCore import Qt
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow,
 QWidget, QVBoxLayout, QLineEdit, QHBoxLayout, QPushButton, QSpinBox,
 QMessageBox, QDesktopWidget)
 
 import backend
 
-#TODO : переделать валидацию мат выражений; добавить в аргументы;
-#TODO : сделать ДИЗАЙН =)
+
+def load_stylesheet(path):
+    # Smart import of the rc file
+    f = QtCore.QFile(path)
+    if not f.exists():
+        _logger().error('Unable to load stylesheet, file not found in '
+                        'resources')
+        return ''
+    else:
+        f.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)
+        ts = QtCore.QTextStream(f)
+        stylesheet = ts.readAll()
+        return stylesheet
 
 def create_hint(string):
         """
@@ -21,14 +32,6 @@ def create_hint(string):
         hint.setMaximumHeight(26)
         hint.setFrameStyle(0)
         return hint
-
-def expr_validation(string, a0, a1):
-    try:
-        expr = lambdify((backend.x0, backend.x1, backend.t), parse_expr(string))
-        float(expr(a0, a1, 0))
-        return True
-    except:
-        return False
 
 
 class MainWindow(QMainWindow):
@@ -41,9 +44,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("My App")
-        self.center_on_screen()
-        self.is_added = False
+        self.setWindowTitle("Solver")
+        # self.center_on_screen()
 
         hint = create_hint("Введіть значення параметрів: ")
 
@@ -58,11 +60,16 @@ class MainWindow(QMainWindow):
         self.button_pass_args.setText("Ввести")
         self.button_pass_args.clicked.connect(self.input_button_clicked)
 
+        self.button_clear_args = QPushButton()
+        self.button_clear_args.setText("Очистити")
+        self.button_clear_args.clicked.connect(self.clear_values)
+
         self.button_set_def_args = QPushButton()
-        self.button_set_def_args.setText("Заповнити")
+        self.button_set_def_args.setText("За замовчуванням")
         self.button_set_def_args.clicked.connect(self.set_default_values)
 
         self.buttons_layout.addWidget(self.button_pass_args)
+        self.buttons_layout.addWidget(self.button_clear_args)
         self.buttons_layout.addWidget(self.button_set_def_args)
         buttons_widget = QWidget()
         buttons_widget.setLayout(self.buttons_layout)
@@ -114,12 +121,23 @@ class MainWindow(QMainWindow):
     def input_button_clicked(self):
         values = self.get_data_from_widgets()
         if not all(val!="" for val in values):
-            self.show_popup("Введіть значення параметрів!")
-            self.is_added = False
+            self.show_popup("Заповніть усі поля!")
         else:
             args = {k:v for k, v in zip(self.default_args.keys(), values)}
             backend.arg = args
-            backend.main()
+            try:
+                backend.main()
+            except Exception:
+                self.show_popup("Невірно задані параметри!", "Перевірте їх", QMessageBox.Critical)
+
+    def clear_values(self):
+        items = []
+        for i in range(1, self.main_layout.count() - 1):
+            items.append(self.main_layout.itemAt(i).widget())
+        for widget in items:
+            widgets = widget.children()
+            if isinstance(widgets, list):
+                widgets[-1].setText("")
 
     def set_default_values(self):
         items = []
@@ -140,16 +158,18 @@ class MainWindow(QMainWindow):
                 values.append(child_widgets[-1].text())
         return values
 
-    def show_popup(self, info: str):
+    def show_popup(self, info: str, comment: str = "", icon_type = QMessageBox.Warning):
         msg = QMessageBox()
         msg.setWindowTitle("Oops")
         msg.setText(info)
-        msg.setIcon(QMessageBox.Warning)
+        msg.setInformativeText(comment)
+        msg.setIcon(icon_type)
 
         msg_exec = msg.exec_()
 
 
 app = QApplication(sys.argv)
+app.setStyleSheet(load_stylesheet('style.qss'))
 
 window = MainWindow()
 window.show()

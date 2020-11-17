@@ -34,7 +34,7 @@ arg = {
 
 class Discret_System:
     def __init__(self, X_L_0, X_L_gamma, X_M_0, X_M_gamma):
-        
+
         self.l_0 = X_L_0.shape[0]
         self.l_g = [X_L_gamma[0].shape[0],X_L_gamma[1].shape[0]]
         self.l_gamma = sum(self.l_g)
@@ -68,13 +68,13 @@ class Discret_System:
             A21 +=[[self.G_gamma[i](x_l.tolist(), x_m.tolist()) for x_m in X_M_0] for x_l in X_L_gamma[i]]
 
         A21 = np.array(A21)
-        
+
         A22 = []
         for i in np.arange(len(self.G_gamma)):
             A22 +=[[self.G_gamma[i](x_l.tolist(), x_m.tolist()) for x_m in X_M_gamma] for x_l in X_L_gamma[i]]
-        
+
         A22 = np.array(A22)
-        
+
         A = np.zeros((self.l_0 + self.l_gamma, self.m_0 + self.m_gamma))
         Y = np.zeros((self.l_0 + self.l_gamma,))
 
@@ -127,6 +127,8 @@ class Discret_System:
         ax.set_xlabel("t")
         ax.set_ylabel("x0")
         ax.set_zlabel("u")
+        ax.set_facecolor('#323232')
+        fig.set_facecolor('#323232')
         plt.show()
 
 def main():
