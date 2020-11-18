@@ -36,6 +36,11 @@ def create_hint(string):
 
 class MainWindow(QMainWindow):
     default_keys = ["G", "L", "y_to_generate_conditions"]
+    default_values = [
+        "Piecewise((0, (t - t_) <= 0),(Max(0,((4 * pi * 1 * (t - t_)) ** (-1/2))* exp(-((x0 - x0_) ** 2) / (4 * 1 * (t - t_))),),True))", 
+        "diff(ex_(t,x0,x1), t) - 1 * (diff(diff(ex_(t,x0,x1), x0), x0) + diff(diff(ex_(t,x0,x1), x1), x1))",
+        "10*cos(x0)+10*sin(x1)+t",
+    ]
     default_args = {
                 "G": "Piecewise((0, (t - t_) <= 0),(Max(0,((4 * pi * 1 * (t - t_)) ** (-1/2))* exp(-((x0 - x0_) ** 2) / (4 * 1 * (t - t_))),),True))",
                 "L": "diff(ex_(t,x0,x1), t) - 1 * (diff(diff(ex_(t,x0,x1), x0), x0) + diff(diff(ex_(t,x0,x1), x1), x1))",
@@ -146,7 +151,7 @@ class MainWindow(QMainWindow):
         items = []
         for i in range(1, self.main_layout.count() - 1):
             items.append(self.main_layout.itemAt(i).widget())
-        for widget, value in zip(items, self.default_keys):
+        for widget, value in zip(items, self.default_values):
             child_widgets = widget.children()
             if isinstance(child_widgets, list):
                 child_widgets[-1].setText(value)
