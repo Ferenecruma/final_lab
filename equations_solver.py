@@ -35,6 +35,7 @@ def create_hint(string):
 
 
 class MainWindow(QMainWindow):
+    default_keys = ["G", "L", "y_to_generate_conditions"]
     default_args = {
                 "G": "Piecewise((0, (t - t_) <= 0),(Max(0,((4 * pi * 1 * (t - t_)) ** (-1/2))* exp(-((x0 - x0_) ** 2) / (4 * 1 * (t - t_))),),True))",
                 "L": "diff(ex_(t,x0,x1), t) - 1 * (diff(diff(ex_(t,x0,x1), x0), x0) + diff(diff(ex_(t,x0,x1), x1), x1))",
@@ -125,7 +126,7 @@ class MainWindow(QMainWindow):
         if not all(val!="" for val in values):
             self.show_popup("Заповніть усі поля!")
         else:
-            args = {k:v for k, v in zip(self.default_args.keys(), values)}
+            args = {k:v for k, v in zip(self.default_keys, values)}
             backend.arg = args
             try:
                 backend.main()
