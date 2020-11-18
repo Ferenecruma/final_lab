@@ -146,7 +146,7 @@ class MainWindow(QMainWindow):
         items = []
         for i in range(1, self.main_layout.count() - 1):
             items.append(self.main_layout.itemAt(i).widget())
-        for widget, value in zip(items, self.default_args.values()):
+        for widget, value in zip(items, self.default_keys):
             child_widgets = widget.children()
             if isinstance(child_widgets, list):
                 child_widgets[-1].setText(value)
